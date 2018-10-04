@@ -15,6 +15,8 @@ module Route {
             if (!this.bot) {
                 this.bot = new Bot();
             }
+
+            console.log(req.body);
             const mapData = JSON.parse(req.body.data) as GameInfo;
             const map = new Map(mapData.CustomSerializedMap, mapData.xMin, mapData.yMin);
 

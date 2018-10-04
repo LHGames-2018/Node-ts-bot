@@ -21,6 +21,7 @@ export interface IPlayer {
     HouseLocation: Point;
     Score: number;
     Name: string;
+    UpgradeLevels: number[];
     CarriedItems: PurchasableItem[];
 }
 

@@ -4,53 +4,14 @@ import { Map } from './map';
 import { Point } from './point';
 import { Tile } from './tile';
 
-class Upgrades {
-    public static HEALTH = 'Health';
-    public static COLLECTING_SPEED = 'CollectingSpeed';
-    public static CARRYING_CAPACITY = 'CarryingCapacity';
-
-    private static pricingMap: {[key: number]: number} = {
-        0: 0,
-        1: 15000,
-        2: 50000,
-        3: 100000,
-        4: 250000,
-        5: 500000
-    };
-
-    private static upgradesMap: {[key: string]: {[key: number]: number}} = {
-        'Health': {
-            5: 0,
-            8: 1,
-            10: 2,
-            15: 3,
-            20: 4,
-            30: 5
-        }, 'CollectingSpeed': {
-            1: 0,
-            1.25: 1,
-            1.5: 2,
-            2: 3,
-            2.5: 4,
-            3.5: 5
-        }, 'CarryingCapacity': {
-            1000: 0,
-            1500: 1,
-            2500: 2,
-            5000: 3,
-            10000: 4,
-            25000: 5
-        }
-    };
-
-    public static GetLevel(type: string, value: number): number {
-        return Upgrades.upgradesMap[type][value];
-    }
-
-    public static GetPricing(level: number): number {
-        return this.pricingMap[level];
-    }
-}
+const PRICING_MAP: {[key: number]: number} = {
+    0: 0,
+    1: 15000,
+    2: 50000,
+    3: 100000,
+    4: 250000,
+    5: 500000
+};
 
 class Queue<T> {
     private store: T[] = [];
@@ -165,7 +126,6 @@ export class Bot {
      * @returns string The action to take(instanciate them with AIHelper)
      */
     public executeTurn(map: Map, visiblePlayers: IPlayer[]): string {
-        console.log(AIHelper.createUpgradeAction(UpgradeType.CarryingCapacity));
         // Full? Run!
         if (this.playerInfo.CarriedResources === this.playerInfo.CarryingCapacity) {
             const xDistance: number = this.playerInfo.HouseLocation.x - this.playerInfo.Position.x;
@@ -183,17 +143,17 @@ export class Bot {
         // At home? Get some upgrades!
         if (Point.Equals(this.playerInfo.HouseLocation, this.playerInfo.Position)) {
             // Check the level of the collecting speed and carrying capacity and upgrade the lowest one if we have enough resources.
-            const collectingSpeedLevel = Upgrades.GetLevel(Upgrades.COLLECTING_SPEED, this.playerInfo.CollectingSpeed);
-            const carryingCapacityLevel = Upgrades.GetLevel(Upgrades.CARRYING_CAPACITY, this.playerInfo.CarryingCapacity);
+            const collectingSpeedLevel = this.playerInfo.UpgradeLevels[UpgradeType.CollectingSpeed];
+            const carryingCapacityLevel = this.playerInfo.UpgradeLevels[UpgradeType.CarryingCapacity];
 
             if (collectingSpeedLevel < carryingCapacityLevel) {
-                const pricing = Upgrades.GetPricing(collectingSpeedLevel + 1);
+                const pricing = PRICING_MAP[collectingSpeedLevel + 1];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading collecting speed.');
                     return AIHelper.createUpgradeAction(UpgradeType.CollectingSpeed);
                 }
             } else {
-                const pricing = Upgrades.GetPricing(carryingCapacityLevel + 1);
+                const pricing = PRICING_MAP[carryingCapacityLevel + 1];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading carrying capacity.');
                     return AIHelper.createUpgradeAction(UpgradeType.CarryingCapacity);
