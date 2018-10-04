@@ -1,0 +1,38 @@
+{
+    "name": "server",
+    "description": "Base client (server) for the LHGames 2018",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "start": "node out/www.js",
+        "lint": "tslint app/**/*.ts app/*.ts --force -t verbose",
+        "coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage -t html",
+        "buildRun": "tsc && npm start",
+        "tsc": "tsc",
+        "tsc:w": "tsc -w",
+        "clean": "rimraf out node_modules",
+        "postinstall": "rimraf false"
+    },
+    "dependencies": {
+        "body-parser": "~1.16.0",
+        "cookie-parser": "~1.4.0",
+        "cors": "~2.8.1",
+        "debug": "~4.0.0",
+        "express": "4.15.4",
+        "morgan": "1.7.0"
+    },
+    "devDependencies": {
+        "@types/body-parser": "1.16.5",
+        "@types/express": "4.0.37",
+        "@types/express-serve-static-core": "4.0.50",
+        "@types/node": "^8.0.26",
+        "@types/node-uuid": "0.0.28",
+        "@types/cookie-parser": "1.4.1",
+        "@types/cors": "2.8.1",
+        "@types/morgan": "1.7.32",
+        "rimraf": "^2.5.4",
+        "tslint": "^4.2.0",
+        "tslint-eslint-rules": "^3.2.3",
+        "typescript": "^2.4.2"
+    }
+}
