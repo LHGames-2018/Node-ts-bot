@@ -4,7 +4,7 @@ import { Map } from './map';
 import { Point } from './point';
 import { Tile } from './tile';
 
-const PRICING_MAP: {[key: number]: number} = {
+const PRICING_MAP: { [ key: number ]: number } = {
     0: 0,
     1: 15000,
     2: 50000,
@@ -36,7 +36,8 @@ class Queue<T> {
 export class Bot {
     protected playerInfo: IPlayer;
 
-    public constructor() { }
+    public constructor() {
+    }
 
     /**
      * Gets called before ExecuteTurn. This is where you get your bot's state.
@@ -131,29 +132,35 @@ export class Bot {
             const xDistance: number = this.playerInfo.HouseLocation.x - this.playerInfo.Position.x;
             const yDistance: number = this.playerInfo.HouseLocation.y - this.playerInfo.Position.y;
 
-            if (Math.abs(xDistance) > Math.abs(yDistance)) {
+            if (xDistance !== 0 &&
+                map.getTileAt(new Point(this.playerInfo.Position.x + (xDistance > 0 ? 1 : -1), this.playerInfo.Position.y)) !==
+                TileContent.Wall) {
                 console.log('Moving to house in X.');
                 return AIHelper.createMoveAction(new Point(xDistance > 0 ? 1 : -1, 0));
             }
 
-            console.log('Moving to house in Y.');
-            return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+            if (yDistance !== 0 &&
+                map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + (yDistance > 0 ? 1 : -1))) !==
+                TileContent.Wall) {
+                console.log('Moving to house in Y.');
+                return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+            }
         }
 
         // At home? Get some upgrades!
         if (Point.Equals(this.playerInfo.HouseLocation, this.playerInfo.Position)) {
             // Check the level of the collecting speed and carrying capacity and upgrade the lowest one if we have enough resources.
-            const collectingSpeedLevel = this.playerInfo.UpgradeLevels[UpgradeType.CollectingSpeed];
-            const carryingCapacityLevel = this.playerInfo.UpgradeLevels[UpgradeType.CarryingCapacity];
+            const collectingSpeedLevel = this.playerInfo.UpgradeLevels[ UpgradeType.CollectingSpeed ];
+            const carryingCapacityLevel = this.playerInfo.UpgradeLevels[ UpgradeType.CarryingCapacity ];
 
             if (collectingSpeedLevel < carryingCapacityLevel) {
-                const pricing = PRICING_MAP[collectingSpeedLevel + 1];
+                const pricing = PRICING_MAP[ collectingSpeedLevel + 1 ];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading collecting speed.');
                     return AIHelper.createUpgradeAction(UpgradeType.CollectingSpeed);
                 }
             } else {
-                const pricing = PRICING_MAP[carryingCapacityLevel + 1];
+                const pricing = PRICING_MAP[ carryingCapacityLevel + 1 ];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading carrying capacity.');
                     return AIHelper.createUpgradeAction(UpgradeType.CarryingCapacity);
@@ -174,14 +181,19 @@ export class Bot {
             const xDistance: number = closest.x - this.playerInfo.Position.x;
             const yDistance: number = closest.y - this.playerInfo.Position.y;
 
-            // Prioritize highest distance.
-            if (Math.abs(xDistance) > Math.abs(yDistance)) {
+            if (xDistance !== 0 &&
+                map.getTileAt(new Point(this.playerInfo.Position.x + (xDistance > 0 ? 1 : -1), this.playerInfo.Position.y)) !==
+                TileContent.Wall) {
                 console.log('Moving to resource in X.');
                 return AIHelper.createMoveAction(new Point(xDistance > 0 ? 1 : -1, 0));
             }
 
-            console.log('Moving to resource in Y.');
-            return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+            if (yDistance !== 0 &&
+                map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + (yDistance > 0 ? 1 : -1))) !==
+                TileContent.Wall) {
+                console.log('Moving to resource in Y.');
+                return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+            }
         }
 
         console.log('Moving randomly.');
@@ -193,5 +205,6 @@ export class Bot {
      * Gets called after executeTurn;
      * @returns void
      */
-    public afterTurn(): void { }
+    public afterTurn(): void {
+    }
 }
