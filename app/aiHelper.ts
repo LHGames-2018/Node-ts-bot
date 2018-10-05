@@ -15,7 +15,7 @@ export class AIHelper {
 
     /**
      * Creates a melee attack Action. You can only attack someone on an
-     * Adjacent tile.
+     * Adjacent tile. (no diagonals).
      * @param  {Point} direction The direction of your target.
      * @returns string The attack Action.
      */
@@ -40,7 +40,6 @@ export class AIHelper {
      * @returns string The move action.
      */
     public static createMoveAction(direction: Point): string {
-        console.log(AIHelper.createAction('MoveAction', direction));
         return AIHelper.createAction('MoveAction', direction);
     }
 
@@ -64,20 +63,20 @@ export class AIHelper {
     public static createPurchaseAction(item: PurchasableItem): string {
         let action;
         switch (item) {
-            case PurchasableItem.DevolutionsBackpack:
-                action = { ActionName: 'PurchaseAction', Content: 'DevolutionsBackpack' };
+            case PurchasableItem.Backpack:
+                action = { ActionName: 'PurchaseAction', Content: 'Backpack' };
                 break;
-            case PurchasableItem.DevolutionsPickaxe:
-                action = { ActionName: 'PurchaseAction', Content: 'DevolutionsPickaxe' };
+            case PurchasableItem.Pickaxe:
+                action = { ActionName: 'PurchaseAction', Content: 'Pickaxe' };
                 break;
             case PurchasableItem.HealthPotion:
                 action = { ActionName: 'PurchaseAction', Content: 'HealthPotion' };
                 break;
-            case PurchasableItem.MicrosoftSword:
-                action = { ActionName: 'PurchaseAction', Content: 'MicrosoftSword' };
+            case PurchasableItem.Sword:
+                action = { ActionName: 'PurchaseAction', Content: 'Sword' };
                 break;
-            case PurchasableItem.UbisoftShield:
-                action = { ActionName: 'PurchaseAction', Content: 'UbisoftShield' };
+            case PurchasableItem.Shield:
+                action = { ActionName: 'PurchaseAction', Content: 'Shield' };
                 break;
         }
         return JSON.stringify(action);
