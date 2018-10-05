@@ -1,42 +1,58 @@
-import { AIHelper } from './aiHelper';
-import { Player, TileContent, UpgradeType } from './interfaces';
-import { Map } from './map';
-import { Point } from './point';
-import { Tile } from './tile';
+const aStar = require('a-star');
 
-const PRICING_MAP: { [ key: number ]: number } = {
+import { AIHelper } from '../helper/aiHelper';
+import { Player, PurchasableItem, TileContent, UpgradeType } from '../helper/interfaces';
+import { Map } from '../helper/map';
+import { Point } from '../helper/point';
+
+const ITEM_COST = 30000;
+
+const PRICING_MAP: { [key: number]: number } = {
     0: 0,
     1: 15000,
     2: 50000,
     3: 100000,
     4: 250000,
-    5: 500000
+    5: 500000,
 };
 
-class Queue<T> {
-    private store: T[] = [];
-
-    public push(val: T) {
-        this.store.push(val);
+function PrintTileSymbol(tileContent: TileContent): string {
+    switch (tileContent) {
+        case TileContent.Wall:
+            return 't';
+        case TileContent.House:
+            return 'h';
+        case TileContent.Empty:
+            return '-';
+        case TileContent.Resource:
+            return 'r';
+        case TileContent.Shop:
+            return 's';
+        case TileContent.Player:
+            return 'p';
+        case TileContent.Lava:
+            return 'l';
+        default:
+            return '?';
     }
+}
 
-    public pop(): T | undefined {
-        if (this.size() <= 0) {
-            return undefined;
+function PrintMap(map: Map) {
+    for (let i = 0; i < map.tiles.length; ++i) {
+        let out = '';
+        for (let j = 0; j < map.tiles[i].length; ++j) {
+            out += PrintTileSymbol(map.tiles[i][j].tileType);
         }
 
-        return this.store.shift();
-    }
-
-    public size(): number {
-        return this.store.length;
+        console.log(out);
     }
 }
 
 export class Bot {
     protected playerInfo: Player;
 
-    public constructor() { }
+    public constructor() {
+    }
 
     /**
      * Gets called before ExecuteTurn. This is where you get your bot's state.
@@ -47,41 +63,13 @@ export class Bot {
         this.playerInfo = playerInfo;
     }
 
-    public findClosestResource(map: Map): Point {
-        this.playerInfo.Position.visited = false;
-
-        let q = new Queue<Point>();
-        q.push(this.playerInfo.Position);
-        while (q.size() > 0) {
-            const current: Point = q.pop();
-            current.visited = true;
-
-            if (map.getTileAt(current) === TileContent.Resource) {
-                return current;
-            }
-
-            const left: Tile = map.getRealTileAt(new Point(current.x - 1, current.y));
-            if (left && left.position.visited === false && Point.distance(left.position, this.playerInfo.Position) < map.visibleDistance
-                && left.tileType !== TileContent.Wall) {
-                q.push(left.position);
-            }
-
-            const right: Tile = map.getRealTileAt(new Point(current.x + 1, current.y));
-            if (right && right.position.visited === false && Point.distance(right.position, this.playerInfo.Position) < map.visibleDistance
-                && right.tileType !== TileContent.Wall) {
-                q.push(right.position);
-            }
-
-            const up: Tile = map.getRealTileAt(new Point(current.x, current.y + 1));
-            if (up && up.position.visited === false && Point.distance(up.position, this.playerInfo.Position) < map.visibleDistance
-                && up.tileType !== TileContent.Wall) {
-                q.push(up.position);
-            }
-
-            const down: Tile = map.getRealTileAt(new Point(current.x, current.y - 1));
-            if (down && down.position.visited === false && Point.distance(down.position, this.playerInfo.Position) < map.visibleDistance
-                && down.tileType !== TileContent.Wall) {
-                q.push(down.position);
+    public findInMap(map: Map, tileContent: TileContent): Point {
+        for (let i = map.xMin; i < map.visibleDistance * 2 + 1 + map.xMin; ++i) {
+            for (let j = map.yMin; j < map.visibleDistance * 2 + 1 + map.yMin; ++j) {
+                const position = new Point(i, j);
+                if (map.getTileAt(position) === tileContent) {
+                    return position;
+                }
             }
         }
 
@@ -112,11 +100,250 @@ export class Bot {
         return null;
     }
 
+    public findNextMoveTo(map: Map, end: Point): string {
+        // Inside of map, find path with dijkstra.
+        if (map.getRealTileAt(end)) {
+            const path = aStar({
+                                   start: this.playerInfo.Position,
+                                   isEnd: (node: Point) => {
+                                       return Point.Equals(node, end);
+                                   },
+                                   neighbor: (node: Point) => {
+                                       const neighbors: Point[] = [];
+
+                                       // Left
+                                       let p = new Point(node.x - 1, node.y);
+                                       let c = map.getTileAt(p);
+                                       if (c === TileContent.Empty || c === TileContent.Wall || c === TileContent.House || Point.Equals(p, end)) {
+                                           neighbors.push(p);
+                                       }
+
+                                       // right
+                                       p = new Point(node.x + 1, node.y);
+                                       c = map.getTileAt(p);
+                                       if (c === TileContent.Empty || c === TileContent.Wall || c === TileContent.House || Point.Equals(p, end)) {
+                                           neighbors.push(p);
+                                       }
+
+                                       // up
+                                       p = new Point(node.x, node.y + 1);
+                                       c = map.getTileAt(p);
+                                       if (c === TileContent.Empty || c === TileContent.Wall || c === TileContent.House || Point.Equals(p, end)) {
+                                           neighbors.push(p);
+                                       }
+
+                                       // down
+                                       p = new Point(node.x, node.y - 1);
+                                       c = map.getTileAt(p);
+                                       if (c === TileContent.Empty || c === TileContent.Wall || c === TileContent.House || Point.Equals(p, end)) {
+                                           neighbors.push(p);
+                                       }
+
+                                       return neighbors;
+                                   },
+                                   distance: (node1: Point, node2: Point) => {
+                                       return Point.distance(node1, node2);
+                                   },
+                                   heuristic: (node: Point) => {
+                                       return Math.abs(end.x - node.x) + Math.abs(end.y - node.y);
+                                   },
+                                   hash: (node: Point) => {
+                                       return [node.x, node.y].join(',');
+                                   },
+                               });
+
+            if (path.path.length >= 2) {
+                const pXY = path.path[1];
+                const content = map.getTileAt(new Point(pXY.x, pXY.y));
+                if (content === TileContent.Empty || content === TileContent.House) {
+                    if (pXY.x !== this.playerInfo.Position.x) {
+                        console.log('Dijkstra to point in X.');
+                        return AIHelper.createMoveAction(new Point(pXY.x - this.playerInfo.Position.x, 0));
+                    }
+
+                    console.log('Dijkstra to point in Y.');
+                    return AIHelper.createMoveAction(new Point(0, pXY.y - this.playerInfo.Position.y));
+                } else {
+                    if (pXY.x !== this.playerInfo.Position.x) {
+                        console.log('Dijkstra destroy tree in X.');
+                        return AIHelper.createAttackAction(new Point(pXY.x - this.playerInfo.Position.x, 0));
+                    }
+
+                    console.log('Dijkstra destroy tree in Y.');
+                    return AIHelper.createAttackAction(new Point(0, pXY.y - this.playerInfo.Position.y));
+                }
+            }
+        }
+
+        // Otherwise, randomly move to target.
+        let xDistance: number = end.x - this.playerInfo.Position.x;
+        let yDistance: number = end.y - this.playerInfo.Position.y;
+
+        if (xDistance < 0) {
+            xDistance = -1;
+        } else if (xDistance > 0) {
+            xDistance = 1;
+        }
+
+        if (yDistance < 0) {
+            yDistance = -1;
+        } else if (yDistance > 0) {
+            yDistance = 1;
+        }
+
+        let content: TileContent;
+
+        if (xDistance !== 0) {
+            content = map.getTileAt(new Point(this.playerInfo.Position.x + xDistance, this.playerInfo.Position.y));
+            if (content === TileContent.Empty || content === TileContent.House) {
+                console.log('Moving to point in X.');
+                return AIHelper.createMoveAction(new Point(xDistance, 0));
+            }
+
+            if (content === TileContent.Wall) {
+                console.log('Destroying tree in X.');
+                return AIHelper.createAttackAction(new Point(xDistance, 0));
+            }
+        }
+
+        if (yDistance !== 0) {
+            content = map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + yDistance));
+            if (content === TileContent.Empty || content === TileContent.House) {
+                console.log('Moving to point in Y.');
+                return AIHelper.createMoveAction(new Point(0, yDistance));
+            }
+
+            if (content === TileContent.Wall) {
+                console.log('Destroying tree in Y.');
+                return AIHelper.createAttackAction(new Point(0, yDistance));
+            }
+        }
+
+        return null;
+    }
+
     public randomMove(): string {
         if (Math.round(Math.random()) === 0) {
+            console.log('Random move in X.');
             return AIHelper.createMoveAction(new Point(Math.round(Math.random()) === 0 ? -1 : 1, 0));
         }
+
+        console.log('Random move in Y.');
         return AIHelper.createMoveAction(new Point(0, Math.round(Math.random()) === 0 ? -1 : 1));
+    }
+
+    public biasedSafeRandom(map: Map): string {
+        let content: TileContent;
+
+        // Roam if not found.
+        if (Math.round(Math.random()) > 0.4) {
+            content = map.getTileAt(new Point(this.playerInfo.Position.x + 1, this.playerInfo.Position.y));
+            if (content === TileContent.Empty || content === TileContent.House) {
+                console.log('Biased move in X.');
+                return AIHelper.createMoveAction(new Point(1, 0));
+            }
+
+            if (content === TileContent.Wall) {
+                console.log('Biased destroy tree in X.');
+                return AIHelper.createAttackAction(new Point(1, 0));
+            }
+        }
+
+        content = map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + 1));
+        if (content === TileContent.Empty || content === TileContent.House) {
+            console.log('Biased move in Y.');
+            return AIHelper.createMoveAction(new Point(0, 1));
+        }
+
+        if (content === TileContent.Wall) {
+            console.log('Biased destroy tree in Y.');
+            return AIHelper.createAttackAction(new Point(0, 1));
+        }
+
+        if (Math.round(Math.random()) > 0.5) {
+            content = map.getTileAt(new Point(this.playerInfo.Position.x - 1, this.playerInfo.Position.y));
+            if (content === TileContent.Empty || content === TileContent.House) {
+                console.log('Biased reverse move in X.');
+                return AIHelper.createMoveAction(new Point(-1, 0));
+            }
+
+            if (content === TileContent.Wall) {
+                console.log('Biased reverse destroy tree in X.');
+                return AIHelper.createAttackAction(new Point(-1, 0));
+            }
+        }
+
+        content = map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + 1));
+        if (content === TileContent.Empty || content === TileContent.House) {
+            console.log('Biased reverse move in Y.');
+            return AIHelper.createMoveAction(new Point(0, 1));
+        }
+
+        if (content === TileContent.Wall) {
+            console.log('Biased reverse destroy tree in Y.');
+            return AIHelper.createAttackAction(new Point(0, 1));
+        }
+
+        return null;
+    }
+
+    /**
+     * This is where we look for roaming option (shop, attack, steal)
+     */
+    public roam(map: Map, visiblePlayers: Player[]): string {
+        // Enough to buy item, let's go.
+        if (this.playerInfo.TotalResources >= ITEM_COST) {
+            if (this.tileAround(map, this.playerInfo.Position, TileContent.Shop)) {
+                console.log('Purchase sword.');
+                if (this.playerInfo.CarriedItems.findIndex((item) => item === PurchasableItem.Sword) < 0) {
+                    return AIHelper.createPurchaseAction(PurchasableItem.Sword);
+                } else if (this.playerInfo.CarriedItems.findIndex((item) => item === PurchasableItem.Shield) < 0) {
+                    return AIHelper.createPurchaseAction(PurchasableItem.Shield);
+                } else if (this.playerInfo.CarriedItems.findIndex((item) => item === PurchasableItem.Backpack) < 0) {
+                    return AIHelper.createPurchaseAction(PurchasableItem.Backpack);
+                } else if (this.playerInfo.CarriedItems.findIndex((item) => item === PurchasableItem.Pickaxe) < 0) {
+                    return AIHelper.createPurchaseAction(PurchasableItem.Pickaxe);
+                } else if (this.playerInfo.CarriedItems.findIndex((item) => item === PurchasableItem.HealthPotion) < 0) {
+                    return AIHelper.createPurchaseAction(PurchasableItem.HealthPotion);
+                }
+            }
+
+            const shopPosition = this.findInMap(map, TileContent.Shop);
+            if (shopPosition) {
+                const action1 = this.findNextMoveTo(map, shopPosition);
+                if (action1) {
+                    return action1;
+                }
+            }
+
+            const action = this.biasedSafeRandom(map);
+            if (action) {
+                return action;
+            }
+        }
+
+        // Look for a player to kill or a house to steal from.
+        // let playerPosition: Point = null;
+        // for (const player of visiblePlayers) {
+        //     if (playerPosition) {
+        //         if (Point.distance(this.playerInfo.Position, playerPosition) > Point.distance(this.playerInfo.Position, player.Position)) {
+        //             playerPosition = player.Position;
+        //         }
+        //     } else {
+        //         playerPosition = player.Position;
+        //     }
+        // }
+        //
+        // if (playerPosition) {
+        //
+        // }
+
+        const action = this.biasedSafeRandom(map);
+        if (action) {
+            return action;
+        }
+
+        return null;
     }
 
     /**
@@ -133,23 +360,21 @@ export class Bot {
             return AIHelper.createAttackAction(playerDirection);
         }
 
+        // Roaming mode if the walls are breakable, we have cumulated enough resources and we are not full.
+        // if (map.wallsAreBreakable && this.playerInfo.TotalResources >= ITEM_COST
+        //   && this.playerInfo.CarriedResources !== this.playerInfo.CarryingCapacity) {
+        if (map.wallsAreBreakable) {
+            const roamMove = this.roam(map, visiblePlayers);
+            if (roamMove) {
+                return roamMove;
+            }
+        }
+
         // Full? Run!
         if (this.playerInfo.CarriedResources === this.playerInfo.CarryingCapacity) {
-            const xDistance: number = this.playerInfo.HouseLocation.x - this.playerInfo.Position.x;
-            const yDistance: number = this.playerInfo.HouseLocation.y - this.playerInfo.Position.y;
-
-            if (xDistance !== 0 &&
-                map.getTileAt(new Point(this.playerInfo.Position.x + (xDistance > 0 ? 1 : -1), this.playerInfo.Position.y)) !==
-                TileContent.Wall) {
-                console.log('Moving to house in X.');
-                return AIHelper.createMoveAction(new Point(xDistance > 0 ? 1 : -1, 0));
-            }
-
-            if (yDistance !== 0 &&
-                map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + (yDistance > 0 ? 1 : -1))) !==
-                TileContent.Wall) {
-                console.log('Moving to house in Y.');
-                return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+            const action = this.findNextMoveTo(map, this.playerInfo.HouseLocation);
+            if (action) {
+                return action;
             }
         }
 
@@ -179,13 +404,13 @@ export class Bot {
             }
 
             if (collectingSpeedLevel < carryingCapacityLevel) {
-                const pricing = PRICING_MAP[ collectingSpeedLevel + 1 ];
+                const pricing = PRICING_MAP[collectingSpeedLevel + 1];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading collecting speed.');
                     return AIHelper.createUpgradeAction(UpgradeType.CollectingSpeed);
                 }
             } else {
-                const pricing = PRICING_MAP[ carryingCapacityLevel + 1 ];
+                const pricing = PRICING_MAP[carryingCapacityLevel + 1];
                 if (pricing <= this.playerInfo.TotalResources) {
                     console.log('Upgrading carrying capacity.');
                     return AIHelper.createUpgradeAction(UpgradeType.CarryingCapacity);
@@ -200,29 +425,20 @@ export class Bot {
             return AIHelper.createCollectAction(resourceDirection);
         }
 
-        const closest: Point = this.findClosestResource(map);
-        // Go to resource. (doesn't avoid walls for now)
-        if (closest) {
-            const xDistance: number = closest.x - this.playerInfo.Position.x;
-            const yDistance: number = closest.y - this.playerInfo.Position.y;
-
-            if (xDistance !== 0 &&
-                map.getTileAt(new Point(this.playerInfo.Position.x + (xDistance > 0 ? 1 : -1), this.playerInfo.Position.y)) !==
-                TileContent.Wall) {
-                console.log('Moving to resource in X.');
-                return AIHelper.createMoveAction(new Point(xDistance > 0 ? 1 : -1, 0));
-            }
-
-            if (yDistance !== 0 &&
-                map.getTileAt(new Point(this.playerInfo.Position.x, this.playerInfo.Position.y + (yDistance > 0 ? 1 : -1))) !==
-                TileContent.Wall) {
-                console.log('Moving to resource in Y.');
-                return AIHelper.createMoveAction(new Point(0, yDistance > 0 ? 1 : -1));
+        const point = this.findInMap(map, TileContent.Resource);
+        if (point) {
+            const action = this.findNextMoveTo(map, point);
+            if (action) {
+                return action;
             }
         }
 
-        console.log('Moving randomly.');
         // Couldn't find anything, randomly move to explore.
+        const action = this.biasedSafeRandom(map);
+        if (action) {
+            return action;
+        }
+
         return this.randomMove();
     }
 
@@ -230,5 +446,6 @@ export class Bot {
      * Gets called after executeTurn;
      * @returns void
      */
-    public afterTurn(): void { }
+    public afterTurn(): void {
+    }
 }

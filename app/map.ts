@@ -5,7 +5,7 @@ import { Point } from './point';
 
 export class Map {
 
-    private tiles: Tile[][];
+    public tiles: Tile[][];
     private xMin: number;
     private yMin: number;
     private xMax: number;
