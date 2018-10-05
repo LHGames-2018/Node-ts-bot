@@ -1,5 +1,5 @@
 import { AIHelper } from './aiHelper';
-import { IPlayer, TileContent, UpgradeType } from './interfaces';
+import { Player, TileContent, UpgradeType } from './interfaces';
 import { Map } from './map';
 import { Point } from './point';
 import { Tile } from './tile';
@@ -34,17 +34,17 @@ class Queue<T> {
 }
 
 export class Bot {
-    protected playerInfo: IPlayer;
+    protected playerInfo: Player;
 
     public constructor() {
     }
 
     /**
      * Gets called before ExecuteTurn. This is where you get your bot's state.
-     * @param  {IPlayer} playerInfo Your bot's current state.
+     * @param  {Player} playerInfo Your bot's current state.
      * @returns void
      */
-    public beforeTurn(playerInfo: IPlayer): void {
+    public beforeTurn(playerInfo: Player): void {
         this.playerInfo = playerInfo;
     }
 
@@ -123,10 +123,10 @@ export class Bot {
     /**
      * This is where you decide what action to take.
      * @param  {Map} map The gamemap.
-     * @param  {IPlayer[]} visiblePlayers The list of visible players.
+     * @param  {Player[]} visiblePlayers The list of visible players.
      * @returns string The action to take(instanciate them with AIHelper)
      */
-    public executeTurn(map: Map, visiblePlayers: IPlayer[]): string {
+    public executeTurn(map: Map, visiblePlayers: Player[]): string {
         // Full? Run!
         if (this.playerInfo.CarriedResources === this.playerInfo.CarryingCapacity) {
             const xDistance: number = this.playerInfo.HouseLocation.x - this.playerInfo.Position.x;
