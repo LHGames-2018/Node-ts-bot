@@ -7,6 +7,7 @@ export interface GameInfo {
     OtherPlayers: Player[];
     xMin: number;
     yMin: number;
+    WallsAreBreakable: boolean;
 }
 
 export interface IPlayer {

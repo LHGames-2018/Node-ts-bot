@@ -36,8 +36,7 @@ class Queue<T> {
 export class Bot {
     protected playerInfo: Player;
 
-    public constructor() {
-    }
+    public constructor() { }
 
     /**
      * Gets called before ExecuteTurn. This is where you get your bot's state.
@@ -89,24 +88,24 @@ export class Bot {
         return null;
     }
 
-    public resourceAround(map: Map, point: Point): Point {
+    public tileAround(map: Map, point: Point, content: TileContent): Point {
         // Left
-        if (map.getTileAt(new Point(point.x - 1, point.y)) === TileContent.Resource) {
+        if (map.getTileAt(new Point(point.x - 1, point.y)) === content) {
             return new Point(-1, 0);
         }
 
         // Right
-        if (map.getTileAt(new Point(point.x + 1, point.y)) === TileContent.Resource) {
+        if (map.getTileAt(new Point(point.x + 1, point.y)) === content) {
             return new Point(1, 0);
         }
 
         // Up
-        if (map.getTileAt(new Point(point.x, point.y + 1)) === TileContent.Resource) {
+        if (map.getTileAt(new Point(point.x, point.y + 1)) === content) {
             return new Point(0, 1);
         }
 
         // Down
-        if (map.getTileAt(new Point(point.x, point.y - 1)) === TileContent.Resource) {
+        if (map.getTileAt(new Point(point.x, point.y - 1)) === content) {
             return new Point(0, -1);
         }
 
@@ -127,6 +126,13 @@ export class Bot {
      * @returns string The action to take(instanciate them with AIHelper)
      */
     public executeTurn(map: Map, visiblePlayers: Player[]): string {
+        // Player next to me? Beat him up.
+        const playerDirection: Point = this.tileAround(map, this.playerInfo.Position, TileContent.Player);
+        if (playerDirection) {
+            console.log('Attacking player.');
+            return AIHelper.createAttackAction(playerDirection);
+        }
+
         // Full? Run!
         if (this.playerInfo.CarriedResources === this.playerInfo.CarryingCapacity) {
             const xDistance: number = this.playerInfo.HouseLocation.x - this.playerInfo.Position.x;
@@ -150,8 +156,27 @@ export class Bot {
         // At home? Get some upgrades!
         if (Point.Equals(this.playerInfo.HouseLocation, this.playerInfo.Position)) {
             // Check the level of the collecting speed and carrying capacity and upgrade the lowest one if we have enough resources.
-            const collectingSpeedLevel = this.playerInfo.UpgradeLevels[ UpgradeType.CollectingSpeed ];
-            const carryingCapacityLevel = this.playerInfo.UpgradeLevels[ UpgradeType.CarryingCapacity ];
+            const collectingSpeedLevel = this.playerInfo.getUpgradeLevel(UpgradeType.CollectingSpeed);
+            const carryingCapacityLevel = this.playerInfo.getUpgradeLevel(UpgradeType.CarryingCapacity);
+            const attackPowerLevel = this.playerInfo.getUpgradeLevel(UpgradeType.AttackPower);
+            const defenceLevel = this.playerInfo.getUpgradeLevel(UpgradeType.Defence);
+
+            // Go for attack power when collecting is at a threshold level.
+            if ((collectingSpeedLevel + carryingCapacityLevel) - attackPowerLevel >= 2 || attackPowerLevel === 0) {
+                const pricing = PRICING_MAP[attackPowerLevel + 1];
+                if (pricing <= this.playerInfo.TotalResources) {
+                    console.log('Upgrading attack power.');
+                    return AIHelper.createUpgradeAction(UpgradeType.AttackPower);
+                }
+            }
+
+            if ((collectingSpeedLevel + carryingCapacityLevel) - defenceLevel >= 2) {
+                const pricing = PRICING_MAP[defenceLevel + 1];
+                if (pricing <= this.playerInfo.TotalResources) {
+                    console.log('Upgrading defence.');
+                    return AIHelper.createUpgradeAction(UpgradeType.Defence);
+                }
+            }
 
             if (collectingSpeedLevel < carryingCapacityLevel) {
                 const pricing = PRICING_MAP[ collectingSpeedLevel + 1 ];
@@ -169,10 +194,10 @@ export class Bot {
         }
 
         // Next to resource? Just mine.
-        const direction: Point = this.resourceAround(map, this.playerInfo.Position);
-        if (direction) {
+        const resourceDirection: Point = this.tileAround(map, this.playerInfo.Position, TileContent.Resource);
+        if (resourceDirection) {
             console.log('Collecting resource.');
-            return AIHelper.createCollectAction(direction);
+            return AIHelper.createCollectAction(resourceDirection);
         }
 
         const closest: Point = this.findClosestResource(map);
@@ -205,6 +230,5 @@ export class Bot {
      * Gets called after executeTurn;
      * @returns void
      */
-    public afterTurn(): void {
-    }
+    public afterTurn(): void { }
 }
