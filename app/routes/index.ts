@@ -9,7 +9,7 @@ module Route {
         private bot: Bot;
 
         public ping(res: Response) {
-            res.send("I am alive!");
+            res.send('I am alive!');
         }
 
         public index = (req: Request, res: Response, next: NextFunction) => {
