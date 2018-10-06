@@ -164,7 +164,7 @@ export class Bot {
           if (!ATTACKS[target.Name]) {
             ATTACKS[target.Name] = [0, false];
           }
-          ATTACKS[target.Name][0] += 0.25;
+          ATTACKS[target.Name][0] += 0.35;
           if (ATTACKS[target.Name][0] >= 10) {
             ATTACKS[target.Name][1] = true;
           }
