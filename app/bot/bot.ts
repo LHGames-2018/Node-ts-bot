@@ -133,7 +133,7 @@ export class Bot {
       }
     }
 
-    // Look for a player to kill or a house to steal from.
+    // Look for a player to kill.
     if (visiblePlayers.length > 0 && this.playerInfo.CarriedItems.length > 0) {
       visiblePlayers = visiblePlayers.sort((p1: Player, p2: Player) => {
         const dp1 = Point.distance(this.playerInfo.Position, p1.Position);
@@ -194,6 +194,7 @@ export class Bot {
    */
   public executeTurn(map: Map, visiblePlayers: Player[]): string {
     PrintMap(map);
+    console.log(`Player carrying capacity ${this.playerInfo.CarryingCapacity}`);
     console.log(`Player resource carrying(${this.playerInfo.CarriedResources}) total(${this.playerInfo.TotalResources})`);
     console.log(`Player at x(${this.playerInfo.Position.x}) y(${this.playerInfo.Position.y})`);
     console.log(`Player house at x(${this.playerInfo.HouseLocation.x}) y(${this.playerInfo.HouseLocation.y})`);
