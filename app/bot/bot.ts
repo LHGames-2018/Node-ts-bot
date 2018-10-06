@@ -132,7 +132,7 @@ export class Bot {
     }
 
     // Look for a player to kill or a house to steal from.
-    if (visiblePlayers.length > 0) {
+    if (visiblePlayers.length > 0 && this.playerInfo.CarriedItems.length > 0) {
       visiblePlayers = visiblePlayers.sort((p1: Player, p2: Player) => {
         const dp1 = Point.distance(this.playerInfo.Position, p1.Position);
         const dp2 = Point.distance(this.playerInfo.Position, p2.Position);
@@ -204,7 +204,8 @@ export class Bot {
       }
 
       const direction = Point.Direction(this.playerInfo.Position, this.playerInfo.HouseLocation);
-      action = this.findNextMoveTo(map, new Point(this.playerInfo.Position.x + direction.x * 10, this.playerInfo.Position.y + direction.y * 10));
+      action = this.findNextMoveTo(map, new Point(this.playerInfo.Position.x + direction.x * 10,
+        this.playerInfo.Position.y + direction.y * 10));
       if (action) {
         console.log('For house.');
         return action;
