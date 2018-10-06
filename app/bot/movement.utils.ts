@@ -21,8 +21,8 @@ export function AStarNextPoint(start: Point, end: Point, map: Map): Point {
       let point = new Point(node.x - 1, node.y);
       let tile = map.getRealTileAt(point);
       if (tile) {
-        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall || tile.TileType === TileContent.House || Point.Equals(
-          point, end)) {
+        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall ||
+          tile.TileType === TileContent.House || Point.Equals(point, end)) {
           if (tile.TileType !== TileContent.Wall || (tile.TileType === TileContent.Wall && map.wallsAreBreakable)) {
             neighbors.push(point);
           }
@@ -33,8 +33,8 @@ export function AStarNextPoint(start: Point, end: Point, map: Map): Point {
       point = new Point(node.x + 1, node.y);
       tile = map.getRealTileAt(point);
       if (tile) {
-        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall || tile.TileType === TileContent.House || Point.Equals(
-          point, end)) {
+        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall ||
+          tile.TileType === TileContent.House || Point.Equals(point, end)) {
           if (tile.TileType !== TileContent.Wall || (tile.TileType === TileContent.Wall && map.wallsAreBreakable)) {
             neighbors.push(point);
           }
@@ -45,8 +45,8 @@ export function AStarNextPoint(start: Point, end: Point, map: Map): Point {
       point = new Point(node.x, node.y + 1);
       tile = map.getRealTileAt(point);
       if (tile) {
-        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall || tile.TileType === TileContent.House || Point.Equals(
-          point, end)) {
+        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall ||
+          tile.TileType === TileContent.House || Point.Equals(point, end)) {
           if (tile.TileType !== TileContent.Wall || (tile.TileType === TileContent.Wall && map.wallsAreBreakable)) {
             neighbors.push(point);
           }
@@ -57,8 +57,8 @@ export function AStarNextPoint(start: Point, end: Point, map: Map): Point {
       point = new Point(node.x, node.y - 1);
       tile = map.getRealTileAt(point);
       if (tile) {
-        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall || tile.TileType === TileContent.House || Point.Equals(
-          point, end)) {
+        if (tile.TileType === TileContent.Empty || tile.TileType === TileContent.Wall ||
+          tile.TileType === TileContent.House || Point.Equals(point, end)) {
           if (tile.TileType !== TileContent.Wall || (tile.TileType === TileContent.Wall && map.wallsAreBreakable)) {
             neighbors.push(point);
           }
