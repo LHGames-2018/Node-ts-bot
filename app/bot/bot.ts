@@ -16,6 +16,8 @@ const PRICING_MAP: { [key: number]: number } = {
   5: 500000,
 };
 
+const ATTACKS: {[key: string]: [number, boolean]} = {};
+
 export class Bot {
   protected playerInfo: Player;
 
@@ -148,10 +150,26 @@ export class Bot {
         return 1;
       });
 
-      const target = visiblePlayers[0];
-      const action = this.findNextMoveTo(map, target.Position);
-      if (action) {
-        return action;
+      let target: Player = null;
+      for (const player of visiblePlayers) {
+        if (!ATTACKS[player.Name] || !ATTACKS[player.Name][1]) {
+          target = player;
+          break;
+        }
+      }
+
+      if (target) {
+        const action = this.findNextMoveTo(map, target.Position);
+        if (action) {
+          if (!ATTACKS[target.Name]) {
+            ATTACKS[target.Name] = [0, false];
+          }
+          ATTACKS[target.Name][0] += 0.25;
+          if (ATTACKS[target.Name][0] >= 10) {
+            ATTACKS[target.Name][1] = true;
+          }
+          return action;
+        }
       }
     }
 
@@ -179,6 +197,18 @@ export class Bot {
     console.log(`Player resource carrying(${this.playerInfo.CarriedResources}) total(${this.playerInfo.TotalResources})`);
     console.log(`Player at x(${this.playerInfo.Position.x}) y(${this.playerInfo.Position.y})`);
     console.log(`Player house at x(${this.playerInfo.HouseLocation.x}) y(${this.playerInfo.HouseLocation.y})`);
+
+    console.log(ATTACKS);
+    for (const playerName in ATTACKS) {
+      if (ATTACKS[playerName][1]) {
+        ATTACKS[playerName][0] -= 0.5;
+        if (ATTACKS[playerName][0] <= 0) {
+          ATTACKS[playerName][0] = 0;
+          ATTACKS[playerName][1] = false;
+        }
+      }
+    }
+
     // Player next to me? Beat him up.
     const playerDirection: Point = this.tileAround(map, this.playerInfo.Position, TileContent.Player);
     if (playerDirection) {
