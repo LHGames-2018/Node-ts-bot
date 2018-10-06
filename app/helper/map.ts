@@ -1,13 +1,13 @@
 import { TileContent } from './interfaces';
-import { Tile } from './tile';
+import { Tile, ResourceTile } from './tile';
 import { Point } from './point';
 
 
 export class Map {
 
     public tiles: Tile[][];
-    private xMin: number;
-    private yMin: number;
+    public xMin: number;
+    public yMin: number;
     private xMax: number;
     private yMax: number;
     private _wallsAreBreakable: boolean;
@@ -54,7 +54,7 @@ export class Map {
         }
         const x = position.x - this.xMin;
         const y = position.y - this.yMin;
-        return this.tiles[x][y].tileType;
+        return this.tiles[x][y].TileType;
     }
 
     public getRealTileAt(position: Point): Tile {
@@ -83,10 +83,20 @@ export class Map {
             for (let j = 0; j < column.length - 1; j++) {
                 let tileType = TileContent.Empty;
                 if (column[j + 1][0] !== '}') {
-                    const infos = column[j + 1].split('}');
-                    tileType = parseInt(infos[0].length > 1 ? infos[0][0].toString() : infos[0], 10) as TileContent;
+                    const infos = column[j + 1].split('}') as any;
+                    tileType = parseInt(infos[0], 10) as TileContent;
+                    if (tileType === TileContent.Resource) {
+                        const amountLeft = parseInt(infos[0].split(',')[1], 10);
+                        const density = parseInt(infos[0].split(',')[2], 10);
+                        this.tiles[i][j] = new ResourceTile(
+                            tileType, i, j,
+                            amountLeft, density
+                        );
+                    }
                 }
-                this.tiles[i][j] = new Tile(tileType, i + this.xMin, j + this.yMin);
+                if (tileType !== TileContent.Resource) {
+                    this.tiles[i][j] = new Tile(tileType, i + this.xMin, j + this.yMin);
+                }
             }
         }
     }

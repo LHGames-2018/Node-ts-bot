@@ -4,36 +4,29 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "start": "node out/www.js",
+        "start": "node out/server/www.js",
         "lint": "tslint app/**/*.ts app/*.ts --force -t verbose",
-        "coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage -t html",
         "buildRun": "tsc && npm start",
-        "tsc": "tsc",
-        "tsc:w": "tsc -w",
-        "clean": "rimraf out node_modules",
-        "postinstall": "rimraf false"
+        "tsc": "tsc"
     },
     "dependencies": {
         "a-star": "0.2.0",
-        "body-parser": "~1.16.0",
-        "cookie-parser": "~1.4.0",
-        "cors": "~2.8.1",
-        "debug": "~4.0.0",
-        "express": "4.15.4",
-        "morgan": "1.7.0"
+        "body-parser": "1.18.3",
+        "cookie-parser": "1.4.3",
+        "cors": "2.8.4",
+        "debug": "4.0.1",
+        "express": "4.16.3",
+        "morgan": "1.9.1"
     },
     "devDependencies": {
-        "@types/body-parser": "1.16.5",
-        "@types/express": "4.0.37",
-        "@types/express-serve-static-core": "4.0.50",
-        "@types/node": "^8.0.26",
-        "@types/node-uuid": "0.0.28",
+        "@types/body-parser": "1.17.0",
+        "@types/express": "4.16.0",
+        "@types/node": "^8.0.0",
         "@types/cookie-parser": "1.4.1",
-        "@types/cors": "2.8.1",
-        "@types/morgan": "1.7.32",
-        "rimraf": "^2.5.4",
-        "tslint": "^4.2.0",
-        "tslint-eslint-rules": "^3.2.3",
-        "typescript": "^2.4.2"
+        "@types/cors": "2.8.4",
+        "@types/morgan": "1.7.35",
+        "tslint": "5.11.0",
+        "tslint-eslint-rules": "5.4.0",
+        "typescript": "^3.1.1"
     }
 }

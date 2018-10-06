@@ -1,4 +1,4 @@
-import { Application } from './app';
+import { Application } from '../app';
 import * as http from 'http';
 
 const application: Application = Application.bootstrap();
