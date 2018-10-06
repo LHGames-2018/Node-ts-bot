@@ -132,21 +132,28 @@ export class Bot {
     }
 
     // Look for a player to kill or a house to steal from.
-    // let playerPosition: Point = null;
-    // for (const player of visiblePlayers) {
-    //     if (playerPosition) {
-    //         if (Point.distance(this.playerInfo.Position, playerPosition) > Point.distance(this.playerInfo.Position, player.Position)) {
-    //             playerPosition = player.Position;
-    //         }
-    //     } else {
-    //         playerPosition = player.Position;
-    //     }
-    // }
-    //
-    // if (playerPosition) {
-    //
-    // }
+    if (visiblePlayers.length > 0) {
+      visiblePlayers = visiblePlayers.sort((p1: Player, p2: Player) => {
+        const dp1 = Point.distance(this.playerInfo.Position, p1.Position);
+        const dp2 = Point.distance(this.playerInfo.Position, p2.Position);
 
+        if (dp1 === dp2) {
+          return 0;
+        }
+
+        if (dp1 < dp2) {
+          return -1;
+        }
+
+        return 1;
+      });
+
+      const target = visiblePlayers[0];
+      const action = this.findNextMoveTo(map, target.Position);
+      if (action) {
+        return action;
+      }
+    }
 
     let move1: string;
     if (Math.random() > 0.7) {
@@ -180,7 +187,7 @@ export class Bot {
     }
 
     // Roaming mode if the walls are breakable, we have cumulated enough resources and we are not full.
-    if (map.wallsAreBreakable && this.playerInfo.TotalResources >= ITEM_COST
+    if (map.wallsAreBreakable && (this.playerInfo.TotalResources >= ITEM_COST || this.playerInfo.CarriedItems.length !== 0)
       && this.playerInfo.CarriedResources !== this.playerInfo.CarryingCapacity) {
       const roamMove = this.roam(map, visiblePlayers);
       if (roamMove) {
