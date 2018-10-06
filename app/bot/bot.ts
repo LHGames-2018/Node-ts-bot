@@ -171,6 +171,7 @@ export class Bot {
     PrintMap(map);
     console.log(`Player resource carrying(${this.playerInfo.CarriedResources}) total(${this.playerInfo.TotalResources})`);
     console.log(`Player at x(${this.playerInfo.Position.x}) y(${this.playerInfo.Position.y})`);
+    console.log(`Player house at x(${this.playerInfo.HouseLocation.x}) y(${this.playerInfo.HouseLocation.y})`);
     // Player next to me? Beat him up.
     const playerDirection: Point = this.tileAround(map, this.playerInfo.Position, TileContent.Player);
     if (playerDirection) {
@@ -189,7 +190,14 @@ export class Bot {
 
     // Full? Run!
     if (this.playerInfo.CarriedResources === this.playerInfo.CarryingCapacity) {
-      const action = this.findNextMoveTo(map, this.playerInfo.HouseLocation);
+      let action = this.findNextMoveTo(map, this.playerInfo.HouseLocation);
+      if (action) {
+        console.log('For house.');
+        return action;
+      }
+
+      const direction = Point.Direction(this.playerInfo.Position, this.playerInfo.HouseLocation);
+      action = this.findNextMoveTo(map, new Point(this.playerInfo.Position.x + direction.x * 10, this.playerInfo.Position.y + direction.y * 10));
       if (action) {
         console.log('For house.');
         return action;
